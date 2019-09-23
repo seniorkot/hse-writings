@@ -1,0 +1,9 @@
+# IntelliJ IDEA workspace
+.idea/
+*.iml
+
+# Python
+*/__pycache__
+
+# Project
+*/config/*
