@@ -10,6 +10,9 @@ with open(os.path.join(os.path.abspath(os.path.dirname(__file__)),
                        'config', 'spreadsheets.json')) as _file:
     _cfg = json.load(_file)
 
+# Client instance
+_client = None
+
 
 def _get_client():
     """
@@ -19,13 +22,16 @@ def _get_client():
     Returns:
         A :class:`~gspread.Client` instance.
     """
-    scope = ["https://spreadsheets.google.com/feeds",
-             'https://www.googleapis.com/auth/spreadsheets',
-             "https://www.googleapis.com/auth/drive.file",
-             "https://www.googleapis.com/auth/drive"]
-    credentials = ServiceAccountCredentials\
-        .from_json_keyfile_name("config/credentials.json", scope)
-    return gspread.authorize(credentials)
+    global _client
+    if not isinstance(_client, gspread.Client):
+        scope = ["https://spreadsheets.google.com/feeds",
+                 'https://www.googleapis.com/auth/spreadsheets',
+                 "https://www.googleapis.com/auth/drive.file",
+                 "https://www.googleapis.com/auth/drive"]
+        credentials = ServiceAccountCredentials \
+            .from_json_keyfile_name("config/credentials.json", scope)
+        _client = gspread.authorize(credentials)
+    return _client
 
 
 def _get_students_spreadsheet():
@@ -39,7 +45,15 @@ def _get_students_spreadsheet():
         gspread.SpreadsheetNotFound: if no spreadsheet with specified in config
                                      file `title` is found.
     """
-    return _get_client().open(_cfg['spreadsheet-students']['title'])
+    return _get_client().open_by_key(_cfg['spreadsheet-students']['key'])
+
+
+def _get_students_spreadsheet_len():
+    """
+    Returns:
+        Number of worksheets in students spreadsheet.
+    """
+    return len(_get_students_spreadsheet().worksheets())
 
 
 def _get_teachers_spreadsheet():
@@ -53,7 +67,15 @@ def _get_teachers_spreadsheet():
         gspread.SpreadsheetNotFound: if no spreadsheet with specified in config
                                      file `title` is found.
     """
-    return _get_client().open(_cfg['spreadsheet-teachers']['title'])
+    return _get_client().open_by_key(_cfg['spreadsheet-teachers']['key'])
+
+
+def _get_teachers_spreadsheet_len():
+    """
+    Returns:
+        Number of worksheets in teachers spreadsheet.
+    """
+    return len(_get_teachers_spreadsheet().worksheets())
 
 
 def _get_results_spreadsheet():
@@ -67,7 +89,15 @@ def _get_results_spreadsheet():
         gspread.SpreadsheetNotFound: if no spreadsheet with specified in config
                                      file `title` is found.
     """
-    return _get_client().open(_cfg['spreadsheet-results']['title'])
+    return _get_client().open_by_key(_cfg['spreadsheet-results']['key'])
+
+
+def _get_results_spreadsheet_len():
+    """
+    Returns:
+        Number of worksheets in results spreadsheet.
+    """
+    return len(_get_results_spreadsheet().worksheets())
 
 
 def get_students(sheet_index=None):
@@ -87,7 +117,7 @@ def get_students(sheet_index=None):
     if sheet_index is None:
         sheet_index = len(spreadsheet.worksheets()) - 1
     df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index).get_all_records())
-    df_id = _cfg['spreadsheet-students']['id']
+    df_id = _cfg['spreadsheet-students']['id-col']
     if df_id is not None:
         df.set_index(df_id, inplace=True)
     return df
@@ -110,7 +140,7 @@ def get_teachers(sheet_index=None):
     if sheet_index is None:
         sheet_index = len(spreadsheet.worksheets()) - 1
     df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index).get_all_records())
-    df_id = _cfg['spreadsheet-teachers']['id']
+    df_id = _cfg['spreadsheet-teachers']['id-col']
     if df_id is not None:
         df.set_index(df_id, inplace=True)
     return df
@@ -133,7 +163,7 @@ def get_results(sheet_index=None):
     if sheet_index is None:
         sheet_index = len(spreadsheet.worksheets()) - 1
     df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index).get_all_records())
-    df_id = _cfg['spreadsheet-results']['id']
+    df_id = _cfg['spreadsheet-results']['id-col']
     if df_id is not None:
         df.set_index(df_id, inplace=True)
     return df

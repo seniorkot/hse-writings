@@ -1,14 +1,14 @@
 {
   "spreadsheet-students": {
-    "title": "Spreadsheet Title",
-    "id": null
+    "key": "Spreadsheet Key",
+    "id-col": null
   },
   "spreadsheet-teachers": {
-    "title": "Spreadsheet Title",
-    "id": null
+    "key": "Spreadsheet Key",
+    "id-col": null
   },
   "spreadsheet-results": {
-    "title": "Spreadsheet Title",
-    "id": null
+    "key": "Spreadsheet Key",
+    "id-col": null
   }
 }
