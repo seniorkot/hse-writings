@@ -29,6 +29,7 @@ class Schedule(object):
 
         # Create filled with zeros DataFrame with
         # available teachers & prepared students
+        self.__schedule = pd.DataFrame(columns=teachers.index)
         self.__scheme = pd.DataFrame(0, index=students.index,
                                      columns=teachers.index)
         for index, row in self.__teachers.iterrows():
@@ -43,7 +44,14 @@ class Schedule(object):
                 for student in session_teacher[
                         session_teacher.str.strip().astype(bool)]:
                     self.__scheme.iloc[
-                        Schedule.__extract_id(student)][teacher] += 1
+                        self.__extract_id(student)][teacher] += 1
+
+    # TODO: Finish this method
+    def generate_schedule(self):
+        # tmp_students = self.__students.copy()
+        tmp_teachers = self.__teachers.copy()
+
+        pass
 
     @staticmethod
     def __extract_id(name: str) -> int:
@@ -62,6 +70,20 @@ class Schedule(object):
             raise InvalidInputDataException(
                 'Cannot extract ID from \'' + name
                 + '\'. Required format is \'Name (ID: 111)\'.') from None
+
+    def __get_student_str(self, std_id: int) -> str:
+        """
+        Return specific string with student name & ID to fill
+        results spreadsheet.
+
+        Args:
+            std_id (int): Student ID
+
+        Returns:
+            String in form 'Name (ID: 111)'
+        """
+        std_name = self.__students.iloc[std_id][0]
+        return std_name + ' (ID: ' + str(std_id) + ')'
 
 
 class InvalidInputDataException(Exception):

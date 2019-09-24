@@ -102,7 +102,7 @@ def _get_results_spreadsheet_len() -> int:
     return len(_get_results_spreadsheet().worksheets())
 
 
-def get_students(sheet_index: int = None) -> pd.DataFrame:
+def get_students(sheet_index: int = None) -> pd.DataFrame or None:
     """
     Collect data from students spreadsheet and return specific sheet as
     pandas DataFrame object.
@@ -118,14 +118,18 @@ def get_students(sheet_index: int = None) -> pd.DataFrame:
     spreadsheet = _get_students_spreadsheet()
     if sheet_index is None:
         sheet_index = len(spreadsheet.worksheets()) - 1
-    df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index).get_all_records())
+    try:
+        df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index)
+                          .get_all_records())
+    except IndexError:
+        return None
     df_id = _cfg['spreadsheet-students']['id-col']
     if df_id is not None:
         df.set_index(df_id, inplace=True)
     return df
 
 
-def get_teachers(sheet_index: int = None) -> pd.DataFrame:
+def get_teachers(sheet_index: int = None) -> pd.DataFrame or None:
     """
     Collect data from teachers spreadsheet and return specific sheet as
     pandas DataFrame object.
@@ -141,14 +145,18 @@ def get_teachers(sheet_index: int = None) -> pd.DataFrame:
     spreadsheet = _get_teachers_spreadsheet()
     if sheet_index is None:
         sheet_index = len(spreadsheet.worksheets()) - 1
-    df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index).get_all_records())
+    try:
+        df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index)
+                          .get_all_records())
+    except IndexError:
+        return None
     df_id = _cfg['spreadsheet-teachers']['id-col']
     if df_id is not None:
         df.set_index(df_id, inplace=True)
     return df
 
 
-def get_results(sheet_index: int = None) -> pd.DataFrame:
+def get_results(sheet_index: int = None) -> pd.DataFrame or None:
     """
     Collect data from results spreadsheet and return specific sheet as
     pandas DataFrame object.
@@ -164,7 +172,11 @@ def get_results(sheet_index: int = None) -> pd.DataFrame:
     spreadsheet = _get_results_spreadsheet()
     if sheet_index is None:
         sheet_index = len(spreadsheet.worksheets()) - 1
-    df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index).get_all_records())
+    try:
+        df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index)
+                          .get_all_records())
+    except IndexError:
+        return None
     df_id = _cfg['spreadsheet-results']['id-col']
     if df_id is not None:
         df.set_index(df_id, inplace=True)
