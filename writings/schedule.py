@@ -16,14 +16,14 @@ class Schedule(object):
                      students list.
     :param teachers: A :class:`~pandas.frame.DataFrame` instance with
                      teachers list.
-    :param session: A list of :class:`~pandas.frame.DataFrame` instances with
-                    previous sessions.
+    :param sessions: A list of :class:`~pandas.frame.DataFrame` instances with
+                     previous sessions.
     """
 
     def __init__(self,
                  students: pd.DataFrame,
                  teachers: pd.DataFrame,
-                 *sessions: pd.DataFrame):
+                 sessions: list):
         self.__students = students
         self.__teachers = teachers
 
