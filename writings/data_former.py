@@ -7,14 +7,15 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 # Load spreadsheets config
 with open(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                       'config', 'spreadsheets.json')) as _file:
+                       'config', 'spreadsheets.json'),
+          encoding='utf-8') as _file:
     _cfg = json.load(_file)
 
 # Client instance
 _client = None
 
 
-def _get_client():
+def _get_client() -> gspread.Client:
     """
     Login to Google API using OAuth2 credentials and
     return authorized client instance.
@@ -28,13 +29,14 @@ def _get_client():
                  'https://www.googleapis.com/auth/spreadsheets',
                  "https://www.googleapis.com/auth/drive.file",
                  "https://www.googleapis.com/auth/drive"]
-        credentials = ServiceAccountCredentials \
-            .from_json_keyfile_name("config/credentials.json", scope)
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(
+            os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                         'config', 'credentials.json'), scope)
         _client = gspread.authorize(credentials)
     return _client
 
 
-def _get_students_spreadsheet():
+def _get_students_spreadsheet() -> gspread.models.Spreadsheet:
     """
     Open students spreadsheet defined in spreadsheets config file.
 
@@ -42,13 +44,13 @@ def _get_students_spreadsheet():
         A :class:`~gspread.models.Spreadsheet` instance.
 
     Raises:
-        gspread.SpreadsheetNotFound: if no spreadsheet with specified in config
-                                     file `title` is found.
+        gspread.exceptions.APIError: if no spreadsheet is found
+                                     or unauthenticated.
     """
     return _get_client().open_by_key(_cfg['spreadsheet-students']['key'])
 
 
-def _get_students_spreadsheet_len():
+def _get_students_spreadsheet_len() -> int:
     """
     Returns:
         Number of worksheets in students spreadsheet.
@@ -56,7 +58,7 @@ def _get_students_spreadsheet_len():
     return len(_get_students_spreadsheet().worksheets())
 
 
-def _get_teachers_spreadsheet():
+def _get_teachers_spreadsheet() -> gspread.models.Spreadsheet:
     """
     Open teachers spreadsheet defined in spreadsheets config file.
 
@@ -64,13 +66,13 @@ def _get_teachers_spreadsheet():
         A :class:`~gspread.models.Spreadsheet` instance.
 
     Raises:
-        gspread.SpreadsheetNotFound: if no spreadsheet with specified in config
-                                     file `title` is found.
+        gspread.exceptions.APIError: if no spreadsheet is found
+                                     or unauthenticated.
     """
     return _get_client().open_by_key(_cfg['spreadsheet-teachers']['key'])
 
 
-def _get_teachers_spreadsheet_len():
+def _get_teachers_spreadsheet_len() -> int:
     """
     Returns:
         Number of worksheets in teachers spreadsheet.
@@ -78,7 +80,7 @@ def _get_teachers_spreadsheet_len():
     return len(_get_teachers_spreadsheet().worksheets())
 
 
-def _get_results_spreadsheet():
+def _get_results_spreadsheet() -> gspread.models.Spreadsheet:
     """
     Open results spreadsheet defined in spreadsheets config file.
 
@@ -86,13 +88,13 @@ def _get_results_spreadsheet():
         A :class:`~gspread.models.Spreadsheet` instance.
 
     Raises:
-        gspread.SpreadsheetNotFound: if no spreadsheet with specified in config
-                                     file `title` is found.
+        gspread.exceptions.APIError: if no spreadsheet is found
+                                     or unauthenticated.
     """
     return _get_client().open_by_key(_cfg['spreadsheet-results']['key'])
 
 
-def _get_results_spreadsheet_len():
+def _get_results_spreadsheet_len() -> int:
     """
     Returns:
         Number of worksheets in results spreadsheet.
@@ -100,7 +102,7 @@ def _get_results_spreadsheet_len():
     return len(_get_results_spreadsheet().worksheets())
 
 
-def get_students(sheet_index=None):
+def get_students(sheet_index: int = None) -> pd.DataFrame:
     """
     Collect data from students spreadsheet and return specific sheet as
     pandas DataFrame object.
@@ -123,7 +125,7 @@ def get_students(sheet_index=None):
     return df
 
 
-def get_teachers(sheet_index=None):
+def get_teachers(sheet_index: int = None) -> pd.DataFrame:
     """
     Collect data from teachers spreadsheet and return specific sheet as
     pandas DataFrame object.
@@ -146,7 +148,7 @@ def get_teachers(sheet_index=None):
     return df
 
 
-def get_results(sheet_index=None):
+def get_results(sheet_index: int = None) -> pd.DataFrame:
     """
     Collect data from results spreadsheet and return specific sheet as
     pandas DataFrame object.
