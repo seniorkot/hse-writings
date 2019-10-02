@@ -102,6 +102,38 @@ def _get_results_spreadsheet_len() -> int:
     return len(_get_results_spreadsheet().worksheets())
 
 
+def _get_records(spreadsheet: gspread.models.Spreadsheet,
+                 spreadsheet_name: str,
+                 sheet_index: int = None,) -> pd.DataFrame or None:
+    """
+    Collect data from specified spreadsheet and return a sheet as
+    pandas DataFrame object.
+
+    Args:
+        spreadsheet (:class:`~gspread.models.Spreadsheet`):
+            Opened spreadsheet.
+        spreadsheet_name (str):
+            Spreadsheet name from spreadsheets.json file.
+        sheet_index (int):
+            Sheet index. Optional.
+            If None - function returns data from the last sheet.
+
+    Returns:
+        A :class:`~pandas.frame.DataFrame` instance.
+    """
+    if sheet_index is None:
+        sheet_index = len(spreadsheet.worksheets()) - 1
+    try:
+        df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index)
+                          .get_all_records())
+    except IndexError:
+        return None
+    df_id = _cfg[spreadsheet_name]['id-col']
+    if df_id is not None:
+        df.set_index(df_id, inplace=True)
+    return df
+
+
 def get_students(sheet_index: int = None) -> pd.DataFrame or None:
     """
     Collect data from students spreadsheet and return specific sheet as
@@ -115,18 +147,9 @@ def get_students(sheet_index: int = None) -> pd.DataFrame or None:
     Returns:
         A :class:`~pandas.frame.DataFrame` instance.
     """
-    spreadsheet = _get_students_spreadsheet()
-    if sheet_index is None:
-        sheet_index = len(spreadsheet.worksheets()) - 1
-    try:
-        df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index)
-                          .get_all_records())
-    except IndexError:
-        return None
-    df_id = _cfg['spreadsheet-students']['id-col']
-    if df_id is not None:
-        df.set_index(df_id, inplace=True)
-    return df
+    return _get_records(_get_students_spreadsheet(),
+                        'spreadsheet-students',
+                        sheet_index)
 
 
 def get_teachers(sheet_index: int = None) -> pd.DataFrame or None:
@@ -142,18 +165,9 @@ def get_teachers(sheet_index: int = None) -> pd.DataFrame or None:
     Returns:
         A :class:`~pandas.frame.DataFrame` instance.
     """
-    spreadsheet = _get_teachers_spreadsheet()
-    if sheet_index is None:
-        sheet_index = len(spreadsheet.worksheets()) - 1
-    try:
-        df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index)
-                          .get_all_records())
-    except IndexError:
-        return None
-    df_id = _cfg['spreadsheet-teachers']['id-col']
-    if df_id is not None:
-        df.set_index(df_id, inplace=True)
-    return df
+    return _get_records(_get_teachers_spreadsheet(),
+                        'spreadsheet-teachers',
+                        sheet_index)
 
 
 def get_results(sheet_index: int = None) -> pd.DataFrame or None:
@@ -169,15 +183,6 @@ def get_results(sheet_index: int = None) -> pd.DataFrame or None:
     Returns:
         A :class:`~pandas.frame.DataFrame` instance.
     """
-    spreadsheet = _get_results_spreadsheet()
-    if sheet_index is None:
-        sheet_index = len(spreadsheet.worksheets()) - 1
-    try:
-        df = pd.DataFrame(spreadsheet.get_worksheet(sheet_index)
-                          .get_all_records())
-    except IndexError:
-        return None
-    df_id = _cfg['spreadsheet-results']['id-col']
-    if df_id is not None:
-        df.set_index(df_id, inplace=True)
-    return df
+    return _get_records(_get_results_spreadsheet(),
+                        'spreadsheet-results',
+                        sheet_index)
