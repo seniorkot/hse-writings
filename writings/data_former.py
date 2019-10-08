@@ -1,6 +1,8 @@
 import os
+import re
 import json
 import gspread
+import datetime
 import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -131,7 +133,7 @@ def _get_records(spreadsheet: gspread.models.Spreadsheet,
     df_id = _cfg[spreadsheet_name]['id-col']
     if df_id is not None:
         df.set_index(df_id, inplace=True)
-    return df
+    return df.drop(columns='', errors='ignore')
 
 
 def get_students(sheet_index: int = None) -> pd.DataFrame or None:
@@ -183,6 +185,24 @@ def get_results(sheet_index: int = None) -> pd.DataFrame or None:
     Returns:
         A :class:`~pandas.frame.DataFrame` instance.
     """
-    return _get_records(_get_results_spreadsheet(),
-                        'spreadsheet-results',
-                        sheet_index)
+    rs = _get_records(_get_results_spreadsheet(),
+                      'spreadsheet-results',
+                      sheet_index)
+    rs.columns = [re.sub(' [0-9]+/[0-9]+', '', col) for col in rs.columns]
+    return rs
+
+
+def post_results(schedule):
+    """
+    Post schedule to the results spreadsheet.
+
+    Args:
+        schedule:
+            Formed schedule.
+
+    """
+    now = datetime.datetime.now()
+    spreadsheet = _get_results_spreadsheet()
+    sheet = spreadsheet.add_worksheet(now.strftime("%d.%m %H:%M"), 1000, 100)
+    # TODO: Set a schedule to the required format
+    pass
