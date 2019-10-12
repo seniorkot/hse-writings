@@ -50,25 +50,79 @@ class Schedule(object):
                     except KeyError:
                         pass
 
-    # TODO: Finish this method
-    def generate_schedule(self):
+        # Generate schedule
+        self.__generate_schedule()
+
+    def __generate_schedule(self):
+        # Get students count & total desired and maximum
+        total = len(self.__students)
         desired = maximum = 0
         for _, row in self.__teachers.iterrows():
             desired += row[-2]
             maximum += row[-1]
+
         # Create schedule as dictionary with teacher keys
         # and empty list values
         self.__schedule = dict()
         for teacher in self.__teachers.index:
             self.__schedule[teacher] = []
-        if self.__students.count() >= maximum:
-            for i in range(maximum):
-                self.__fill_student(self.__students.iloc[i])
-            if self.__students.count() > maximum:
-                self.__schedule['Остальные'] = []
 
-    def __fill_student(self, student_id: int):
-        pass
+        # Choose strategy & fill in the schedule
+        if total >= maximum:
+            for i in range(maximum):
+                self.__fill_student(self.__students.iloc[i].name, 1, False)
+            if total > maximum:
+                self.__schedule['Остальные'] = \
+                    self.__students.iloc[maximum:total].index.to_list()
+        elif total >= desired:
+            for i in range(desired):
+                self.__fill_student(self.__students.iloc[i].name, 1, True)
+            if total > desired:
+                proportion = total / maximum
+                for i in range(desired, total):
+                    self.__fill_student(self.__students.iloc[i].name,
+                                        proportion, False)
+        else:
+            proportion = total / desired
+            for i in range(total):
+                self.__fill_student(self.__students.iloc[i].name,
+                                    proportion, True)
+
+    def __fill_student(self,
+                       student_id: int,
+                       proportion: float,
+                       desired: bool):
+        # Check previous teacher
+        prev_teacher = None
+        for col in self.__sessions[-1].columns:
+            if student_id in self.__sessions[-1][col].values:
+                prev_teacher = col
+
+        # Fill in the schedule with proportion
+        if prev_teacher:
+            scheme = self.__scheme.loc[student_id]. \
+                drop(columns=prev_teacher).sort_values().items()
+        else:
+            scheme = self.__scheme.loc[student_id].sort_values().items()
+
+        for teacher, value in scheme:
+            if desired:
+                std_count = int(self.__teachers.loc[teacher][-2] * proportion)
+            else:
+                std_count = int(self.__teachers.loc[teacher][-1] * proportion)
+            if len(self.__schedule[teacher]) < std_count:
+                self.__schedule[teacher].append(student_id)
+                return
+
+        # Fill in the schedule without proportion
+        for teacher, value in scheme:
+            if desired \
+                    and len(self.__schedule[teacher]) < \
+                    self.__teachers.loc[teacher][-2] \
+                    or len(self.__schedule[teacher]) < \
+                    self.__teachers.loc[teacher][-1]:
+                self.__schedule[teacher].append(student_id)
+                return
 
     @staticmethod
     def __extract_id(name: str) -> int:
