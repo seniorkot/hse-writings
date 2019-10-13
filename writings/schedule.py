@@ -123,3 +123,22 @@ class Schedule(object):
                     self.__teachers.loc[teacher][-1]:
                 self.__schedule[teacher].append(student_id)
                 return
+
+    def get_output(self) -> list:
+        output = []
+        for teacher in self.__teachers.index:
+            lst1 = [teacher + ' ' + str(self.__teachers.loc[teacher][-2])
+                    + '/' + str(self.__teachers.loc[teacher][-1])]
+            lst1.extend(str(v) for v in self.__schedule[teacher])
+            lst2 = ['']
+            lst2.extend(self.__students.loc[self.__schedule[teacher]].
+                        iloc[:, 0].tolist())
+            output.extend([lst1, lst2, ['']])
+        if 'Остальные' in self.__schedule:
+            lst1 = ['Остальные']
+            lst1.extend(str(v) for v in self.__schedule['Остальные'])
+            lst2 = ['']
+            lst2.extend(self.__students.loc[self.__schedule['Остальные']].
+                        iloc[:, 0].tolist())
+            output.extend([lst1, lst2])
+        return output

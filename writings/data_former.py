@@ -52,7 +52,7 @@ def _get_students_spreadsheet() -> gspread.models.Spreadsheet:
     return _get_client().open_by_key(_cfg['spreadsheet-students']['key'])
 
 
-def _get_students_spreadsheet_len() -> int:
+def get_students_spreadsheet_len() -> int:
     """
     Returns:
         Number of worksheets in students spreadsheet.
@@ -74,7 +74,7 @@ def _get_teachers_spreadsheet() -> gspread.models.Spreadsheet:
     return _get_client().open_by_key(_cfg['spreadsheet-teachers']['key'])
 
 
-def _get_teachers_spreadsheet_len() -> int:
+def get_teachers_spreadsheet_len() -> int:
     """
     Returns:
         Number of worksheets in teachers spreadsheet.
@@ -96,7 +96,7 @@ def _get_results_spreadsheet() -> gspread.models.Spreadsheet:
     return _get_client().open_by_key(_cfg['spreadsheet-results']['key'])
 
 
-def _get_results_spreadsheet_len() -> int:
+def get_results_spreadsheet_len() -> int:
     """
     Returns:
         Number of worksheets in results spreadsheet.
@@ -203,6 +203,9 @@ def post_results(schedule):
     """
     now = datetime.datetime.now()
     spreadsheet = _get_results_spreadsheet()
-    sheet = spreadsheet.add_worksheet(now.strftime("%d.%m %H:%M"), 1000, 100)
-    # TODO: Set a schedule to the required format
-    pass
+    sheet = spreadsheet.add_worksheet(now.strftime("%d.%m %H:%M"),
+                                      rows=1000, cols=100)
+    spreadsheet.values_update(sheet.title + '!A1:CV1000',
+                              params={'valueInputOption': 'RAW'},
+                              body={'values': schedule,
+                                    'majorDimension': 'COLUMNS'})
