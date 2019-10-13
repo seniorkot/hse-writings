@@ -206,6 +206,6 @@ def post_results(schedule):
     sheet = spreadsheet.add_worksheet(now.strftime("%d.%m %H:%M"),
                                       rows=1000, cols=100)
     spreadsheet.values_update(sheet.title + '!A1:CV1000',
-                              params={'valueInputOption': 'RAW'},
+                              params={'valueInputOption': 'USER_ENTERED'},
                               body={'values': schedule,
                                     'majorDimension': 'COLUMNS'})
