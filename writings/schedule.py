@@ -41,7 +41,7 @@ class Schedule(object):
 
         # Fill prepared DataFrame with values from previous sessions
         for session in sessions:
-            session = session[teachers.index]
+            session = session.reindex(columns=teachers.index)
             for teacher in teachers.index:
                 session_teacher = session[teacher]
                 for student in session_teacher.replace('', np.nan).dropna():
@@ -113,6 +113,12 @@ class Schedule(object):
             if len(self.__schedule[teacher]) < std_count:
                 self.__schedule[teacher].append(student_id)
                 return
+
+        if prev_teacher:
+            scheme = self.__scheme.loc[student_id]. \
+                drop(columns=prev_teacher).sort_values().items()
+        else:
+            scheme = self.__scheme.loc[student_id].sort_values().items()
 
         # Fill in the schedule without proportion
         for teacher, value in scheme:
