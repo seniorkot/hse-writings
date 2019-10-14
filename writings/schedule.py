@@ -56,79 +56,70 @@ class Schedule(object):
     def __generate_schedule(self):
         # Get students count & total desired and maximum
         total = len(self.__students)
-        desired = maximum = 0
-        for _, row in self.__teachers.iterrows():
-            desired += row[-2]
-            maximum += row[-1]
+        desired = sum(self.__teachers.iloc[:, -2])
+        maximum = sum(self.__teachers.iloc[:, -1])
 
         # Create schedule as dictionary with teacher keys
         # and empty list values
-        self.__schedule = dict()
-        for teacher in self.__teachers.index:
-            self.__schedule[teacher] = []
+        self.__schedule = {teacher: [] for teacher in self.__teachers.index}
+        if total < desired:
+            tc = 2
+            while sum(self.__teachers.iloc[:tc, -2]) < total:
+                tc += 1
+            self.__scheme = self.__scheme[self.__teachers.iloc[:tc].index]
 
         # Choose strategy & fill in the schedule
-        if total >= maximum:
-            for i in range(maximum):
-                self.__fill_student(self.__students.iloc[i].name, 1, False)
-            if total > maximum:
-                self.__schedule['Остальные'] = \
-                    self.__students.iloc[maximum:total].index.to_list()
-        elif total >= desired:
+        if total <= desired:
+            for i in range(total):
+                self.__fill_student(self.__students.iloc[i].name)
+        else:
             for i in range(desired):
-                self.__fill_student(self.__students.iloc[i].name, 1, True)
-            if total > desired:
-                proportion = total / maximum
+                self.__fill_student(self.__students.iloc[i].name)
+            if total <= maximum:
+                proportion = (total - desired) / (maximum - desired)
                 for i in range(desired, total):
                     self.__fill_student(self.__students.iloc[i].name,
-                                        proportion, False)
-        else:
-            proportion = total / desired
-            for i in range(total):
-                self.__fill_student(self.__students.iloc[i].name,
-                                    proportion, True)
+                                        proportion, True)
+            else:
+                for i in range(desired, maximum):
+                    self.__fill_student(self.__students.iloc[i].name,
+                                        maximum=True)
+                self.__schedule['Остальные'] = \
+                    self.__students.iloc[maximum:total].index.to_list()
 
     def __fill_student(self,
                        student_id: int,
-                       proportion: float,
-                       desired: bool):
+                       proportion: float = 1.0,
+                       maximum: bool = False):
         # Check previous teacher
-        prev_teacher = None
+        prev_teacher = ''
         for col in self.__sessions[-1].columns:
             if student_id in self.__sessions[-1][col].values:
                 prev_teacher = col
+                break
 
-        # Fill in the schedule with proportion
-        if prev_teacher:
-            scheme = self.__scheme.loc[student_id]. \
-                drop(columns=prev_teacher).sort_values().items()
+        # Extract values from the scheme for certain student
+        scheme = self.__scheme.loc[student_id]. \
+            drop(columns=prev_teacher, errors='ignore').\
+            sort_values(kind='mergesort').items()
+
+        # Fill in with desired values
+        if not maximum:
+            for teacher, value in scheme:
+                if len(self.__schedule[teacher]) < \
+                        self.__teachers.loc[teacher][-2]:
+                    self.__schedule[teacher].append(student_id)
+                    return
+        # Fill in with other values till maximum
         else:
-            scheme = self.__scheme.loc[student_id].sort_values().items()
-
-        for teacher, value in scheme:
-            if desired:
-                std_count = int(self.__teachers.loc[teacher][-2] * proportion)
-            else:
-                std_count = int(self.__teachers.loc[teacher][-1] * proportion)
-            if len(self.__schedule[teacher]) < std_count:
-                self.__schedule[teacher].append(student_id)
-                return
-
-        if prev_teacher:
-            scheme = self.__scheme.loc[student_id]. \
-                drop(columns=prev_teacher).sort_values().items()
-        else:
-            scheme = self.__scheme.loc[student_id].sort_values().items()
-
-        # Fill in the schedule without proportion
-        for teacher, value in scheme:
-            if desired \
-                    and len(self.__schedule[teacher]) < \
-                    self.__teachers.loc[teacher][-2] \
-                    or len(self.__schedule[teacher]) < \
-                    self.__teachers.loc[teacher][-1]:
-                self.__schedule[teacher].append(student_id)
-                return
+            for teacher, value in scheme:
+                std_count = int((self.__teachers.loc[teacher][-2] -
+                                self.__teachers.loc[teacher][-1]) * proportion)
+                if proportion != 1.0:
+                    std_count += 1
+                if len(self.__schedule[teacher]) < std_count:
+                    self.__schedule[teacher].append(student_id)
+                    return
 
     def get_output(self) -> list:
         output = []
