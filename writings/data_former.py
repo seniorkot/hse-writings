@@ -193,14 +193,13 @@ def get_results(sheet_index: int = None) -> pd.DataFrame or None:
     return rs
 
 
-def post_results(schedule):
+def post_results(schedule: list):
     """
     Post schedule to the results spreadsheet.
 
     Args:
-        schedule:
-            Formed schedule.
-
+        schedule (list):
+            Formed schedule (list of column values).
     """
     now = datetime.datetime.now()
     spreadsheet = _get_results_spreadsheet()

@@ -48,9 +48,31 @@ class Schedule(object):
                         pass
 
         # Generate schedule
-        self.__generate_schedule()
+        self.generate_schedule()
 
-    def __generate_schedule(self):
+    def get_students(self) -> pd.DataFrame:
+        return self.__students
+
+    def set_students(self, students: pd.DataFrame):
+        self.__students = students
+
+    def get_teachers(self) -> pd.DataFrame:
+        return self.__teachers
+
+    def set_teachers(self, teachers: pd.DataFrame):
+        self.__teachers = teachers
+
+    def get_sessions(self) -> list:
+        return self.__sessions
+
+    def set_sessions(self, sessions: list):
+        self.__sessions = sessions
+
+    def generate_schedule(self):
+        """
+        Generates a schedule using information about students, teachers &
+        previous sessions.
+        """
         # Get students count & total desired and maximum
         total = len(self.__students)
         desired = sum(self.__teachers.iloc[:, -2])
@@ -58,9 +80,10 @@ class Schedule(object):
 
         # Drop teachers with zeroes
         teachers = self.__teachers.copy()
-        for index, row in self.__teachers.iterrows():
+        for index, row in teachers.iterrows():
             if row.all() == 0:
-                self.__scheme.drop(columns=index, inplace=True)
+                self.__scheme.drop(columns=index, inplace=True,
+                                   errors='ignore')
                 teachers.drop(index, inplace=True)
 
         # Create schedule as dictionary with teacher keys
@@ -95,6 +118,17 @@ class Schedule(object):
                        student_id: int,
                        proportion: float = 1.0,
                        maximum: bool = False):
+        """
+        Fills the schedule with a concrete student.
+
+        Args:
+            student_id (int):
+                Student ID.
+            proportion (float):
+                Desired/maximum proportion.
+            maximum (bool):
+                True if all desired places were taken.
+        """
         # Check previous teacher
         prev_teacher = ''
         for col in self.__sessions[-1].columns:
@@ -126,6 +160,12 @@ class Schedule(object):
                     return
 
     def get_output(self) -> list:
+        """
+        Generates an output for posting to a spreadsheet.
+
+        Returns:
+            A list of values for each worksheet column.
+        """
         output = []
         for teacher in self.__teachers.index:
             lst1 = [teacher + ' ' + str(self.__teachers.loc[teacher][-2])
