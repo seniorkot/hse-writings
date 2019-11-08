@@ -5,7 +5,8 @@
   },
   "spreadsheet-teachers": {
     "key": "Spreadsheet Key",
-    "id-col": null
+    "id-col": null,
+    "columns": ["col1", "col2"]
   },
   "spreadsheet-results": {
     "key": "Spreadsheet Key",

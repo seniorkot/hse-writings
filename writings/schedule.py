@@ -35,9 +35,6 @@ class Schedule(object):
         # available teachers & prepared students
         self.__scheme = pd.DataFrame(0, index=students.index,
                                      columns=teachers.index)
-        for index, row in self.__teachers.iterrows():
-            if row.all() == 0:
-                self.__scheme.drop(columns=index, inplace=True)
 
         # Fill prepared DataFrame with values from previous sessions
         for session in sessions:
@@ -59,14 +56,21 @@ class Schedule(object):
         desired = sum(self.__teachers.iloc[:, -2])
         maximum = sum(self.__teachers.iloc[:, -1])
 
+        # Drop teachers with zeroes
+        teachers = self.__teachers.copy()
+        for index, row in self.__teachers.iterrows():
+            if row.all() == 0:
+                self.__scheme.drop(columns=index, inplace=True)
+                teachers.drop(index, inplace=True)
+
         # Create schedule as dictionary with teacher keys
         # and empty list values
         self.__schedule = {teacher: [] for teacher in self.__teachers.index}
         if total < desired:
             tc = 2
-            while sum(self.__teachers.iloc[:tc, -2]) < total:
+            while sum(teachers.iloc[:tc, -2]) < total:
                 tc += 1
-            self.__scheme = self.__scheme[self.__teachers.iloc[:tc].index]
+            self.__scheme = self.__scheme.iloc[:, :tc]
 
         # Choose strategy & fill in the schedule
         if total <= desired:

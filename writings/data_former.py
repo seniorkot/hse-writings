@@ -169,7 +169,8 @@ def get_teachers(sheet_index: int = None) -> pd.DataFrame or None:
     """
     return _get_records(_get_teachers_spreadsheet(),
                         'spreadsheet-teachers',
-                        sheet_index)
+                        sheet_index)\
+        .reindex(columns=_cfg['spreadsheet-teachers']['columns'])
 
 
 def get_results(sheet_index: int = None) -> pd.DataFrame or None:
