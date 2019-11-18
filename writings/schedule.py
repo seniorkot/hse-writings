@@ -43,7 +43,7 @@ class Schedule(object):
                 session_teacher = session[teacher]
                 for student in session_teacher.replace('', np.nan).dropna():
                     try:
-                        self.__scheme.loc[student][teacher] += 1
+                        self.__scheme.loc[student, teacher] += 1
                     except KeyError:
                         pass
 

@@ -151,7 +151,7 @@ def get_students(sheet_index: int = None) -> pd.DataFrame or None:
     """
     return _get_records(_get_students_spreadsheet(),
                         'spreadsheet-students',
-                        sheet_index)
+                        sheet_index).drop_duplicates()
 
 
 def get_teachers(sheet_index: int = None) -> pd.DataFrame or None:
